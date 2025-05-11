@@ -3,20 +3,19 @@ package com.supermarket.payment_optimizer.service.payment;
 import com.supermarket.payment_optimizer.dto.OrderPaymentOption;
 import com.supermarket.payment_optimizer.model.Order;
 import com.supermarket.payment_optimizer.model.PaymentMethod;
+import com.supermarket.payment_optimizer.service.payment.factory.PaymentStrategyFactory;
 import com.supermarket.payment_optimizer.service.payment.option.*;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class OptionEvaluator {
 
-    private final List<PaymentStrategy> strategies = Arrays.asList(
-            new FullPointsPaymentStrategy(),
-            new PartialPointsPaymentStrategy(),
-            new PromoCardPaymentStrategy(),
-            new FallbackCardPaymentStrategy()
-    );
+    private final List<PaymentStrategy> strategies;
+
+    public OptionEvaluator(PaymentStrategyFactory factory) {
+        this.strategies = factory.getStrategies();
+    }
 
     public OrderPaymentOption evaluate(Order order, Map<String, PaymentMethod> methodMap) {
         OrderPaymentOption best = null;

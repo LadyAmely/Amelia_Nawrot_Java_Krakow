@@ -5,6 +5,7 @@ import com.supermarket.payment_optimizer.model.Order;
 import com.supermarket.payment_optimizer.model.PaymentMethod;
 import com.supermarket.payment_optimizer.service.payment.OptionEvaluator;
 import com.supermarket.payment_optimizer.service.payment.PaymentApplier;
+import com.supermarket.payment_optimizer.service.payment.factory.PaymentStrategyFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,7 +18,9 @@ import java.util.Map;
 public class PaymentOptimizerService {
 
     private final PaymentApplier applier = new PaymentApplier();
-    private final OptionEvaluator evaluator = new OptionEvaluator();
+    PaymentStrategyFactory factory = new PaymentStrategyFactory();
+    OptionEvaluator evaluator = new OptionEvaluator(factory);
+
 
     public Map<String, BigDecimal> optimize(List<Order> orders, List<PaymentMethod> methods) {
         Map<String, BigDecimal> usedAmounts = new HashMap<>();

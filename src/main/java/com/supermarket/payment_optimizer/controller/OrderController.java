@@ -20,8 +20,8 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<Order> getOrders(@RequestParam String file) throws IOException {
-        return orderService.loadOrders(file);
+    public List<Order> getOrders() throws IOException {
+        return orderService.loadOrders("data/orders.json");
     }
 }
 

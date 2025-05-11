@@ -5,7 +5,6 @@ import com.supermarket.payment_optimizer.service.PaymentMethodService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -23,7 +22,7 @@ public class PaymentMethodController {
     }
 
     @GetMapping
-    public List<PaymentMethod> getPaymentsMethods(@RequestParam String file) throws IOException {
-        return paymentMethodService.loadPaymentMethods(file);
+    public List<PaymentMethod> getPaymentsMethods() throws IOException {
+        return paymentMethodService.loadPaymentMethods("data/paymentmethods.json");
     }
 }

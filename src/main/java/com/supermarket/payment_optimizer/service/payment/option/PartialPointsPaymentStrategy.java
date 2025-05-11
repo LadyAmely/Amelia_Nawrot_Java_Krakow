@@ -7,38 +7,38 @@ import com.supermarket.payment_optimizer.model.PaymentMethod;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
+import java.util.Optional;
 
 public class PartialPointsPaymentStrategy implements PaymentStrategy {
 
     private static final String POINTS_ID = "PUNKTY";
+    private static final BigDecimal TEN_PERCENT = new BigDecimal("0.10");
 
     @Override
     public OrderPaymentOption evaluate(Order order, Map<String, PaymentMethod> methodMap) {
-        BigDecimal value = order.getValue();
         PaymentMethod points = methodMap.get(POINTS_ID);
         if (points == null) return null;
 
-        BigDecimal tenPercent = value.multiply(BigDecimal.valueOf(0.10)).setScale(2, RoundingMode.HALF_UP);
-        if (points.getLimit().compareTo(tenPercent) < 0) return null;
+        BigDecimal orderValue = order.getValue();
+        BigDecimal minRequiredPoints = orderValue.multiply(TEN_PERCENT).setScale(2, RoundingMode.HALF_UP);
+        if (points.getLimit().compareTo(minRequiredPoints) < 0) return null;
 
-        BigDecimal discount = BigDecimal.valueOf(0.10);
-        BigDecimal finalCost = value.multiply(BigDecimal.ONE.subtract(discount)).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal maxPoints = points.getLimit().min(finalCost);
-        BigDecimal remaining = finalCost.subtract(maxPoints);
+        BigDecimal discountedTotal = orderValue.multiply(BigDecimal.ONE.subtract(TEN_PERCENT)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal pointsUsed = points.getLimit().min(discountedTotal);
+        BigDecimal remainingToPay = discountedTotal.subtract(pointsUsed);
 
-        String fallbackCardId = findCardWithEnoughLimit(methodMap, remaining);
-        if (fallbackCardId == null) return null;
-
-        return new OrderPaymentOption(finalCost, maxPoints, remaining, fallbackCardId);
+        return findFallbackCard(methodMap, remainingToPay)
+                .map(cardId -> new OrderPaymentOption(discountedTotal, pointsUsed, remainingToPay, cardId))
+                .orElse(null);
     }
 
-    private String findCardWithEnoughLimit(Map<String, PaymentMethod> methods, BigDecimal requiredAmount) {
-        for (PaymentMethod method : methods.values()) {
-            if (!method.getId().equals(POINTS_ID) && method.getLimit().compareTo(requiredAmount) >= 0) {
-                return method.getId();
-            }
-        }
-        return null;
+    private Optional<String> findFallbackCard(Map<String, PaymentMethod> methods, BigDecimal amount) {
+        return methods.values().stream()
+                .filter(m -> !POINTS_ID.equals(m.getId()))
+                .filter(m -> m.getLimit().compareTo(amount) >= 0)
+                .map(PaymentMethod::getId)
+                .findFirst();
     }
 }
+
 

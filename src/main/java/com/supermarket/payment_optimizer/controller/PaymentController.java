@@ -23,15 +23,12 @@ public class PaymentController {
     }
 
     @GetMapping("/optimize")
-    public Map<String, BigDecimal> optimize(
-            @RequestParam String ordersPath,
-            @RequestParam String methodsPath
-    ) throws IOException {
-
-        List<Order> orders = OrderParser.parseOrders(ordersPath);
-        List<PaymentMethod> methods = PaymentMethodParser.parsePaymentMethods(methodsPath);
+    public Map<String, BigDecimal> optimize() throws IOException {
+        List<Order> orders = OrderParser.parseOrders("data/orders.json");
+        List<PaymentMethod> methods = PaymentMethodParser.parsePaymentMethods("data/paymentmethods.json");
 
         return optimizerService.optimize(orders, methods);
     }
 }
+
 

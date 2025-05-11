@@ -14,16 +14,16 @@ public class FallbackCardPaymentStrategy implements PaymentStrategy {
 
     @Override
     public OrderPaymentOption evaluate(Order order, Map<String, PaymentMethod> methodMap) {
-        BigDecimal value = order.getValue();
-
-        for (PaymentMethod method : methodMap.values()) {
-            if (!method.getId().equals(POINTS_ID) && method.getLimit().compareTo(value) >= 0) {
-                BigDecimal finalCost = value.setScale(2, RoundingMode.HALF_UP);
-                return new OrderPaymentOption(finalCost, BigDecimal.ZERO, finalCost, method.getId());
-            }
-        }
-
-        return null;
+        return methodMap.values().stream()
+                .filter(method -> !POINTS_ID.equals(method.getId()))
+                .filter(method -> method.getLimit().compareTo(order.getValue()) >= 0)
+                .findFirst()
+                .map(method -> {
+                    BigDecimal finalCost = order.getValue().setScale(2, RoundingMode.HALF_UP);
+                    return new OrderPaymentOption(finalCost, BigDecimal.ZERO, finalCost, method.getId());
+                })
+                .orElse(null);
     }
+
 }
 
